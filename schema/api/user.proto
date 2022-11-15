@@ -1,0 +1,32 @@
+syntax = "proto3";
+package api;
+
+import "google/api/annotations.proto";  
+import "google/protobuf/any.proto";
+
+// [START golang_declaration]
+option go_package = "github.com/anhdt-vnpay/f5_fulltext_search/types/api;api";
+
+message ListRequest {
+    uint64 page = 1;
+    uint64 limit = 2;
+    string words = 3;
+    uint64 offset = 4;
+    uint64 level_id = 5;
+    uint64 exam_id = 6;
+}
+
+message ListResponse {
+    int32 code = 1;
+    string message = 2;
+    repeated google.protobuf.Any items = 3;
+}
+
+message User {
+    uint64 id = 1;
+    string name = 2;
+    string type = 3;
+    string create_at = 4;
+    string update_at = 5;
+    bool delete = 6;
+}
