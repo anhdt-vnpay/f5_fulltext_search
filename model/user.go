@@ -1,4 +1,4 @@
-package file_management
+package model
 
 import (
 	"fmt"

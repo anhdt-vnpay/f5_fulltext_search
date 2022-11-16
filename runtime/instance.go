@@ -4,11 +4,17 @@ import (
 	"fmt"
 )
 
+var (
+	TYPE_INSERT = "insert"
+	TYPE_UPDATE = "update"
+	TYPE_DELETE = "delete"
+)
+
 type DbFullTextSearch interface {
 	Insert(tableName string, value interface{}) error
 	Update(tableName string, value interface{}) error
 	Delete(tableName string, value interface{}) error
-	Get(tableName string, condition string) error
+	Get(tableName string, condition string, result interface{}) error
 	SearchLite(query string, result interface{}) error
 
 	SetStorage(dbStorage DbStorage)
@@ -33,28 +39,53 @@ func NewDbFullTextSearch(opts ...DbOption) DbFullTextSearch {
 }
 
 func (db *dbFullTextSearch) Insert(tableName string, value interface{}) error {
+
 	if err := db.db.Insert(tableName, value); err != nil {
 		return err
 	}
-	return nil
+
+	// Publish message
+	message, err := createMessage(TYPE_INSERT, value)
+	if err != nil {
+		return err
+	}
+	err = db.msgProcessor.Save(message)
+
+	return err
 }
 
 func (db *dbFullTextSearch) Update(tableName string, value interface{}) error {
 	if err := db.db.Update(tableName, value); err != nil {
 		return err
 	}
-	return nil
+
+	// Publish message
+	message, err := createMessage(TYPE_UPDATE, value)
+	if err != nil {
+		return err
+	}
+	err = db.msgProcessor.Save(message)
+
+	return err
 }
 
 func (db *dbFullTextSearch) Delete(tableName string, value interface{}) error {
 	if err := db.db.Delete(tableName, value); err != nil {
 		return err
 	}
-	return nil
+
+	// Publish message
+	message, err := createMessage(TYPE_DELETE, value)
+	if err != nil {
+		return err
+	}
+	err = db.msgProcessor.Save(message)
+
+	return err
 }
-func (db *dbFullTextSearch) Get(tableName string, condition string) error {
+func (db *dbFullTextSearch) Get(tableName string, condition string, result interface{}) error {
 	fmt.Println("Get >>")
-	err := db.db.Get(tableName, condition)
+	err := db.db.Get(tableName, condition, result)
 	return err
 }
 

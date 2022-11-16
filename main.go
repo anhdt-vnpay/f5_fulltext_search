@@ -4,24 +4,45 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/anhdt-vnpay/f5_fulltext_search/db"
+	gorm_impl "github.com/anhdt-vnpay/f5_fulltext_search/gorm_impl"
+	db_connector "github.com/anhdt-vnpay/f5_fulltext_search/gorm_impl/db_connector"
 	"github.com/anhdt-vnpay/f5_fulltext_search/lib/config"
 	m "github.com/anhdt-vnpay/f5_fulltext_search/model"
-	runtime "github.com/anhdt-vnpay/f5_fulltext_search/runtime"
+	"github.com/anhdt-vnpay/f5_fulltext_search/runtime"
 )
 
 func main() {
-	fmt.Println("====================== INIT DB ==========================")
-
+	fmt.Println("====================== Init DB ==========================")
 	config.Init()
-	db, err := db.InitMysql()
-	if err != nil {
-		log.Fatal("Init db failed: ", err.Error())
+	fmt.Println("init mysql database ...")
+	config := config.GetConfig()
+
+	// Declare variable configuration mysql
+	host := config.GetString("mysql.host")
+	port := config.GetString("mysql.port")
+	dbName := config.GetString("mysql.database")
+	user := config.GetString("mysql.username")
+	pass := config.GetString("mysql.password")
+
+	configObj := db_connector.ConnectorConfig{
+		Mode:     db_connector.Mysql,
+		Host:     host,
+		Port:     port,
+		Database: dbName,
+		Username: user,
+		Password: pass,
 	}
+
+	conn, err := db_connector.NewDatabaseConnector(&configObj)
+	if err != nil {
+		log.Fatal("DB connector error: ", err.Error())
+	}
+
+	db := conn.GetDb()
 
 	fmt.Println("====================== Init objects ==========================")
 
-	dbStorage := runtime.NewGormDbStorage(db)
+	dbStorage := gorm_impl.NewGormDbStorage(db)
 	var opts []runtime.DbOption
 	opt1 := runtime.WithStorage(dbStorage)
 	opt2 := runtime.WithMsgProcessor(nil)
@@ -30,61 +51,14 @@ func main() {
 
 	fmt.Println("====================== DEMO ==========================")
 
-	// Test insert
-	fmt.Println("Insert >>>>>>>>>>>>")
-	a := m.User{
-		ID:   1,
-		Name: "A",
-		Type: "Person",
+	// Test get
+	fmt.Println("Get >>>>>>>>")
+	rs := []m.User{}
+	name := "Rename A"
+	err = dbf.Get("users", fmt.Sprintf("name=%q", name), &rs)
+	if err != nil {
+		fmt.Println("Get error: ", err.Error())
 	}
-
-	b := m.User{
-		ID:   2,
-		Name: "B",
-		Type: "Person",
-	}
-
-	c := m.User{
-		ID:   3,
-		Name: "C",
-		Type: "Person",
-	}
-
-	if err := dbf.Insert("user", a); err != nil {
-		fmt.Println("[Insert] error occured: ", err.Error())
-	}
-	if err := dbf.Insert("user", b); err != nil {
-		fmt.Println("[Insert] error occured: ", err.Error())
-	}
-	if err := dbf.Insert("user", c); err != nil {
-		fmt.Println("[Insert] error occured: ", err.Error())
-	}
-	fmt.Println("[Insert] SUCCESS")
-	fmt.Println("")
-
-	// Test update
-	fmt.Println("Update >>>>>>>>>>>>")
-	editA := m.User{
-		ID:   1,
-		Name: "Rename A",
-		Type: "Person",
-	}
-	if err := dbf.Update("user", editA); err != nil {
-		fmt.Println("[Update] error occured: ", err.Error())
-	}
-	fmt.Println("[Update] SUCCESS")
-	fmt.Println("")
-
-	// Test delete
-	fmt.Println("Delete >>>>>>>>>>>>")
-	deleteC := m.User{
-		ID:   3,
-		Name: "C",
-		Type: "Person",
-	}
-	if err := dbf.Delete("user", deleteC); err != nil {
-		fmt.Println("[Delete] error occured: ", err.Error())
-	}
-	fmt.Println("[Delete] SUCCESS")
-	fmt.Println("")
+	fmt.Println("RS: ")
+	fmt.Println(rs)
 }
