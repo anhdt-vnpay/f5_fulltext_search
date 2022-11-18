@@ -3,26 +3,25 @@ package message_processor
 import (
 	"context"
 	"fmt"
-	"sync"
-	"time"
 
 	redis_connector "github.com/anhdt-vnpay/f5_fulltext_search/redis"
-)
-
-var (
-	wg sync.WaitGroup
 )
 
 type messageProcessor struct {
 	redisChannel   string
 	redisConnector redis_connector.RedisConnector
+
+	chMsg chan []byte
 }
 
 func NewMessageProcessor(redisChannel string, redisConnector redis_connector.RedisConnector) *messageProcessor {
-	return &messageProcessor{
+	messageProcessor := &messageProcessor{
+		chMsg:          make(chan []byte),
 		redisChannel:   redisChannel,
 		redisConnector: redisConnector,
 	}
+	messageProcessor.subscribe()
+	return messageProcessor
 }
 
 func (r *messageProcessor) Save(data []byte) error {
@@ -31,15 +30,27 @@ func (r *messageProcessor) Save(data []byte) error {
 	return nil
 }
 
-func (r *messageProcessor) Listen() error {
-	subscriber := r.redisConnector.GetClient().Subscribe(context.Background(), r.redisChannel)
-
-	for {
-		msg, err := subscriber.ReceiveMessage(context.Background())
+func (r *messageProcessor) subscribe() {
+	ctx := context.Background()
+	subscriber := r.redisConnector.GetClient().Subscribe(ctx, r.redisChannel)
+	receivingMsg := func() {
+		msg, err := subscriber.Receive(ctx)
 		if err != nil {
-			panic(err)
+			subscriber = r.redisConnector.GetClient().Subscribe(ctx, r.redisChannel)
 		}
-		fmt.Println("Receive: ", msg.Payload)
-		time.Sleep(time.Second)
+		if data, ok := msg.([]byte); ok {
+			// TODO: add timeout for messsage?
+			r.chMsg <- data
+		}
 	}
+	receivingLoop := func() {
+		for {
+			receivingMsg()
+		}
+	}
+	go receivingLoop()
+}
+
+func (r *messageProcessor) GetMsgChannel() chan []byte {
+	return r.chMsg
 }
