@@ -16,13 +16,9 @@ type DbFullTextSearch interface {
 	Delete(tableName string, value interface{}) error
 	Get(tableName string, condition string, result interface{}) error
 	SearchLite(query string, result interface{}) error
-
-	SetStorage(dbStorage DbStorage)
-	SetMsgProcessor(msgProcessor MessageProcessor)
-	SetSearchProcessor(search SearchProcessor)
 }
 
-type DbOption func(db DbFullTextSearch)
+type DbOption func(db *dbFullTextSearch)
 
 type dbFullTextSearch struct {
 	db           DbStorage
@@ -35,6 +31,7 @@ func NewDbFullTextSearch(opts ...DbOption) DbFullTextSearch {
 	for _, opt := range opts {
 		opt(db)
 	}
+	go db.msgLoop()
 	return db
 }
 
@@ -43,45 +40,24 @@ func (db *dbFullTextSearch) Insert(tableName string, value interface{}) error {
 	if err := db.db.Insert(tableName, value); err != nil {
 		return err
 	}
-
-	// Publish message
-	message, err := createMessage(TYPE_INSERT, value)
-	if err != nil {
-		return err
-	}
-	err = db.msgProcessor.Save(message)
-
-	return err
+	go db.saveMsg(TYPE_INSERT, value)
+	return nil
 }
 
 func (db *dbFullTextSearch) Update(tableName string, value interface{}) error {
 	if err := db.db.Update(tableName, value); err != nil {
 		return err
 	}
-
-	// Publish message
-	message, err := createMessage(TYPE_UPDATE, value)
-	if err != nil {
-		return err
-	}
-	err = db.msgProcessor.Save(message)
-
-	return err
+	go db.saveMsg(TYPE_UPDATE, value)
+	return nil
 }
 
 func (db *dbFullTextSearch) Delete(tableName string, value interface{}) error {
 	if err := db.db.Delete(tableName, value); err != nil {
 		return err
 	}
-
-	// Publish message
-	message, err := createMessage(TYPE_DELETE, value)
-	if err != nil {
-		return err
-	}
-	err = db.msgProcessor.Save(message)
-
-	return err
+	go db.saveMsg(TYPE_DELETE, value)
+	return nil
 }
 func (db *dbFullTextSearch) Get(tableName string, condition string, result interface{}) error {
 	fmt.Println("Get >>")
@@ -99,38 +75,45 @@ func (db *dbFullTextSearch) SearchLite(query string, result interface{}) error {
 	return nil
 }
 
-func (db *dbFullTextSearch) SetStorage(dbStorage DbStorage) {
-	fmt.Println("Set storage >>")
-	db.db = dbStorage
-}
-
-func (db *dbFullTextSearch) SetMsgProcessor(msgProcessor MessageProcessor) {
-	fmt.Println("Set msg processor >>")
-	db.msgProcessor = msgProcessor
-}
-
-func (db *dbFullTextSearch) SetSearchProcessor(search SearchProcessor) {
-	fmt.Println("Set search processor >>")
-	db.search = search
-}
-
 /*************************************************************************************************
 With Option
 *************************************************************************************************/
 func WithStorage(dbStorage DbStorage) DbOption {
-	return func(db DbFullTextSearch) {
-		db.SetStorage(dbStorage)
+	return func(db *dbFullTextSearch) {
+		db.db = dbStorage
 	}
 }
 
 func WithMsgProcessor(msgProcessor MessageProcessor) DbOption {
-	return func(db DbFullTextSearch) {
-		db.SetMsgProcessor(msgProcessor)
+	return func(db *dbFullTextSearch) {
+		db.msgProcessor = msgProcessor
 	}
 }
 
 func WithSearchProcessor(search SearchProcessor) DbOption {
-	return func(db DbFullTextSearch) {
-		db.SetSearchProcessor(search)
+	return func(db *dbFullTextSearch) {
+		db.search = search
+	}
+}
+
+func (db *dbFullTextSearch) saveMsg(tipe string, data interface{}) {
+	message, err := createMessage(TYPE_DELETE, data)
+	if err != nil {
+		// Add log to trace
+		return
+	}
+	err = db.msgProcessor.Save(message)
+	if err != nil {
+		// Add log to trace
+		return
+	}
+	// Add log to trace
+	return
+}
+
+func (db *dbFullTextSearch) msgLoop() {
+	for {
+		msg := <-db.msgProcessor.GetMsgChannel()
+		db.search.IndexData(msg)
 	}
 }

@@ -75,12 +75,12 @@ func main() {
 
 	ch := make(chan string)
 	searchProcessor := search_processor.NewSearchProcessor(ch, redisChannel, redisConnector)
-	go func() {
-		searchProcessor.Subscribe()
-	}()
-	go func() {
-		searchProcessor.PassMessage()
-	}()
+	// go func() {
+	// 	searchProcessor.Subscribe()
+	// }()
+	// go func() {
+	// 	searchProcessor.PassMessage()
+	// }()
 
 	var opts []runtime.DbOption
 	opt1 := runtime.WithStorage(dbStorage)
@@ -90,6 +90,18 @@ func main() {
 	dbf := runtime.NewDbFullTextSearch(opts...)
 
 	fmt.Println("====================== DEMO ==========================")
+
+	/**********************************************************************************************************
+	Test scenario
+	1. insert data
+	2. search data -> compare
+	3. update data
+	4. search data -> compare
+	5. get data -> compare with id from search data
+	6. delete data
+	7. search data -> compare
+	8. get data -> compare
+	**********************************************************************************************************/
 
 	// Test get
 	fmt.Println("Update after 3 seconds >>>>>>>>")
