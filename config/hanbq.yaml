@@ -11,3 +11,10 @@ postgres:
   database: "fulltext_search"
   username: "postgres"
   password: "postgres"
+
+redis-config:
+   mode: "host"
+   addr : "localhost:6379"
+   username : ""
+   password: ""
+   channelname: "broker"
