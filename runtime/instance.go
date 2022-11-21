@@ -15,7 +15,7 @@ type DbFullTextSearch interface {
 	Update(tableName string, value interface{}) error
 	Delete(tableName string, value interface{}) error
 	Get(tableName string, condition string, result interface{}) error
-	SearchLite(query string, result interface{}) error
+	SearchLite(query string) (interface{}, error)
 }
 
 type DbOption func(db *dbFullTextSearch)
@@ -40,7 +40,7 @@ func (db *dbFullTextSearch) Insert(tableName string, value interface{}) error {
 	if err := db.db.Insert(tableName, value); err != nil {
 		return err
 	}
-	go db.saveMsg(TYPE_INSERT, value)
+	go db.saveMsg(TYPE_INSERT, tableName, value)
 	return nil
 }
 
@@ -48,7 +48,7 @@ func (db *dbFullTextSearch) Update(tableName string, value interface{}) error {
 	if err := db.db.Update(tableName, value); err != nil {
 		return err
 	}
-	go db.saveMsg(TYPE_UPDATE, value)
+	go db.saveMsg(TYPE_UPDATE, tableName, value)
 	return nil
 }
 
@@ -56,7 +56,7 @@ func (db *dbFullTextSearch) Delete(tableName string, value interface{}) error {
 	if err := db.db.Delete(tableName, value); err != nil {
 		return err
 	}
-	go db.saveMsg(TYPE_DELETE, value)
+	go db.saveMsg(TYPE_DELETE, tableName, value)
 	return nil
 }
 func (db *dbFullTextSearch) Get(tableName string, condition string, result interface{}) error {
@@ -65,14 +65,20 @@ func (db *dbFullTextSearch) Get(tableName string, condition string, result inter
 	return err
 }
 
-func (db *dbFullTextSearch) SearchLite(query string, result interface{}) error {
+func (db *dbFullTextSearch) SearchLite(query string) (interface{}, error) {
 	fmt.Println("Search lite >>")
-	_, err := db.search.SearchLite(query)
+	bRs, err := db.search.SearchLite(query)
 	if err != nil {
 		fmt.Println("Search lite error: ", err.Error())
-		return err
+		return nil, err
 	}
-	return nil
+
+	rs, err := parseSearchResult(bRs)
+	if err != nil {
+		fmt.Println("Parse search result error: ", err.Error())
+	}
+
+	return rs, nil
 }
 
 /*************************************************************************************************
@@ -96,19 +102,17 @@ func WithSearchProcessor(search SearchProcessor) DbOption {
 	}
 }
 
-func (db *dbFullTextSearch) saveMsg(tipe string, data interface{}) {
-	message, err := createMessage(TYPE_DELETE, data)
+func (db *dbFullTextSearch) saveMsg(tipe string, tableName string, data interface{}) {
+	message, err := createMessage(tipe, tableName, data)
 	if err != nil {
-		// Add log to trace
+		fmt.Printf("create message error: %s\n", err.Error())
 		return
 	}
 	err = db.msgProcessor.Save(message)
 	if err != nil {
-		// Add log to trace
+		fmt.Printf("unknown error\n")
 		return
 	}
-	// Add log to trace
-	return
 }
 
 func (db *dbFullTextSearch) msgLoop() {

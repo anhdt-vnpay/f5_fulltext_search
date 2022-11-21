@@ -3,6 +3,7 @@ package message_processor
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	redis_connector "github.com/anhdt-vnpay/f5_fulltext_search/redis"
 )
@@ -34,14 +35,13 @@ func (r *messageProcessor) subscribe() {
 	ctx := context.Background()
 	subscriber := r.redisConnector.GetClient().Subscribe(ctx, r.redisChannel)
 	receivingMsg := func() {
-		msg, err := subscriber.Receive(ctx)
+		msg, err := subscriber.ReceiveMessage(ctx)
 		if err != nil {
+			fmt.Printf("Receive message error: %s\n", err.Error())
 			subscriber = r.redisConnector.GetClient().Subscribe(ctx, r.redisChannel)
 		}
-		if data, ok := msg.([]byte); ok {
-			// TODO: add timeout for messsage?
-			r.chMsg <- data
-		}
+		fmt.Printf("Receive message: %v and %s\n", msg.Payload, reflect.TypeOf(msg.Payload))
+		r.chMsg <- []byte(msg.Payload)
 	}
 	receivingLoop := func() {
 		for {

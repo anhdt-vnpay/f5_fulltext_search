@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"time"
 
 	gorm_impl "github.com/anhdt-vnpay/f5_fulltext_search/gorm_impl"
 	db_connector "github.com/anhdt-vnpay/f5_fulltext_search/gorm_impl/db_connector"
 	"github.com/anhdt-vnpay/f5_fulltext_search/lib/config"
 	redis_pubsub "github.com/anhdt-vnpay/f5_fulltext_search/message_processor"
-	m "github.com/anhdt-vnpay/f5_fulltext_search/model"
 	redis_connector "github.com/anhdt-vnpay/f5_fulltext_search/redis"
 	"github.com/anhdt-vnpay/f5_fulltext_search/runtime"
 	"github.com/anhdt-vnpay/f5_fulltext_search/search_processor"
@@ -73,14 +71,8 @@ func main() {
 	dbStorage := gorm_impl.NewGormDbStorage(db)
 	messageProcessor := redis_pubsub.NewMessageProcessor(redisChannel, redisConnector)
 
-	ch := make(chan string)
+	ch := messageProcessor.GetMsgChannel()
 	searchProcessor := search_processor.NewSearchProcessor(ch, redisChannel, redisConnector)
-	// go func() {
-	// 	searchProcessor.Subscribe()
-	// }()
-	// go func() {
-	// 	searchProcessor.PassMessage()
-	// }()
 
 	var opts []runtime.DbOption
 	opt1 := runtime.WithStorage(dbStorage)
@@ -104,30 +96,21 @@ func main() {
 	**********************************************************************************************************/
 
 	// Test get
-	fmt.Println("Update after 3 seconds >>>>>>>>")
-	rs := m.User{
-		ID:   1,
-		Name: "A",
-		Type: "Person B",
-	}
-	time.Sleep(4 * time.Second)
-	err = dbf.Update("users", &rs)
-	if err != nil {
-		fmt.Println("Get error: ", err.Error())
-	}
+	// fmt.Println("Update after 1 seconds >>>>>>>>")
+	// rs := m.User{
+	// 	ID:   3,
+	// 	Name: "C updated",
+	// 	Type: "Person",
+	// }
 
-	rs2 := m.User{
-		ID:   1,
-		Name: "B",
-		Type: "Person B",
-	}
-	time.Sleep(2 * time.Second)
-	err = dbf.Update("users", &rs2)
-	if err != nil {
-		fmt.Println("Get error: ", err.Error())
-	}
-	fmt.Println("RS: ")
-	fmt.Println(rs)
+	// time.Sleep(1 * time.Second)
+	// err = dbf.Update("users", &rs)
+	// if err != nil {
+	// 	fmt.Println("Get error: ", err.Error())
+	// }
+
+	rs, _ := dbf.SearchLite("false") // Only need to pass value to search in all fields
+	fmt.Println("Final result: ", rs)
 	wg.Add(1)
 	wg.Wait()
 }
