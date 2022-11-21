@@ -2,11 +2,11 @@ package runtime
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
+
+	model "github.com/anhdt-vnpay/f5_fulltext_search/model"
 )
 
-// TODO: need to refactor => create message object
 func createMessage(tipe string, tableName string, data interface{}) ([]byte, error) {
 	tipe = strings.Trim(tipe, " ")
 	tipe = strings.ToLower(tipe)
@@ -14,14 +14,18 @@ func createMessage(tipe string, tableName string, data interface{}) ([]byte, err
 	tableName = strings.Trim(tableName, " ")
 	tableName = strings.ToLower(tableName)
 
-	byteData, err := json.Marshal(data)
+	m := model.Message{
+		Tipe:      tipe,
+		TableName: tableName,
+		Data:      data,
+	}
+
+	byteData, err := json.Marshal(m)
 	if err != nil {
 		return nil, err
 	}
 
-	m := fmt.Sprintf("%s/%s/%s", tipe, tableName, string(byteData))
-	fmt.Println("message: ", m)
-	return []byte(m), nil
+	return byteData, nil
 }
 
 func parseSearchResult(data []byte) ([]map[string]interface{}, error) {

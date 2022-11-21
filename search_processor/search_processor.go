@@ -52,18 +52,15 @@ func (r *searchProcessor) PassMessage() error {
 	return nil
 }
 
-type Student struct {
-	Name         string
-	Age          int
-	AverageScore float32
-}
-
 func (r *searchProcessor) IndexData(data []byte) error {
-	tipe, index, body, err := helper.ParseMessage(string(data))
+	tipe, index, body, err := helper.ParseMessage(data)
 	if err != nil {
 		return err
 	}
-	id := helper.GetDataID(body)
+	id, err := helper.GetDataID(body)
+	if err != nil {
+		return err
+	}
 
 	switch tipe {
 	case "insert":

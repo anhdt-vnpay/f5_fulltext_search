@@ -9,6 +9,7 @@ import (
 	db_connector "github.com/anhdt-vnpay/f5_fulltext_search/gorm_impl/db_connector"
 	"github.com/anhdt-vnpay/f5_fulltext_search/lib/config"
 	redis_pubsub "github.com/anhdt-vnpay/f5_fulltext_search/message_processor"
+	m "github.com/anhdt-vnpay/f5_fulltext_search/model"
 	redis_connector "github.com/anhdt-vnpay/f5_fulltext_search/redis"
 	"github.com/anhdt-vnpay/f5_fulltext_search/runtime"
 	"github.com/anhdt-vnpay/f5_fulltext_search/search_processor"
@@ -96,21 +97,21 @@ func main() {
 	**********************************************************************************************************/
 
 	// Test get
-	// fmt.Println("Update after 1 seconds >>>>>>>>")
-	// rs := m.User{
-	// 	ID:   3,
-	// 	Name: "C updated",
-	// 	Type: "Person",
-	// }
+	fmt.Println("Update after 1 seconds >>>>>>>>")
+	rs := m.User{
+		ID:   3,
+		Name: "C updated 5",
+		Type: "Person",
+	}
 
 	// time.Sleep(1 * time.Second)
-	// err = dbf.Update("users", &rs)
-	// if err != nil {
-	// 	fmt.Println("Get error: ", err.Error())
-	// }
+	err = dbf.Update("users", &rs)
+	if err != nil {
+		fmt.Println("Get error: ", err.Error())
+	}
 
-	rs, _ := dbf.SearchLite("false") // Only need to pass value to search in all fields
-	fmt.Println("Final result: ", rs)
+	// rs, _ := dbf.SearchLite("false") // Only need to pass value to search in all fields
+	// fmt.Println("Final result: ", rs)
 	wg.Add(1)
 	wg.Wait()
 }

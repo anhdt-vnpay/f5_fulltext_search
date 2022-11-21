@@ -1,9 +1,11 @@
 package helper
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
+	"github.com/anhdt-vnpay/f5_fulltext_search/model"
 	elastic "github.com/olivere/elastic/v7"
 )
 
@@ -23,27 +25,44 @@ func GetESClient() (*elastic.Client, error) {
 
 }
 
-func ParseMessage(message string) (string, string, string, error) {
-	strArr := strings.Split(message, "/")
-	if len(strArr) < 3 {
-		return "", "", "", fmt.Errorf("parse invalid message")
+func ParseMessage(message []byte) (string, string, string, error) {
+	var ori model.Message
+	err := json.Unmarshal(message, &ori)
+	if err != nil {
+		return "", "", "", err
 	}
-	return strArr[0], strArr[1], strArr[2], nil
+
+	byteData, err := json.Marshal(ori.Data)
+	if err != nil {
+		return "", "", "", err
+	}
+	return ori.Tipe, ori.TableName, string(byteData), nil
 }
 
-func GetDataID(data string) string {
+func GetDataID(data string) (string, error) {
 	data = strings.Trim(data, "{")
 	data = strings.Trim(data, "}")
 
 	dataArr := strings.Split(data, ",")
 	if len(dataArr) < 1 {
-		return "something's wrong"
+		return "", fmt.Errorf("something's wrong")
 	}
 
-	idPart := strings.Split(dataArr[0], ":")
-	if len(idPart) < 2 {
-		return "something's wrong too"
+	for _, item := range dataArr {
+		arr := strings.Split(item, ":")
+		if len(arr) < 2 {
+			return "", fmt.Errorf("something's wrong")
+		}
+		key := arr[0]
+		value := arr[1]
+
+		key = strings.Trim(key, "\"") // trim quotes
+		key = strings.ToLower(key)
+
+		if key == "id" {
+			return fmt.Sprint(value), nil
+		}
 	}
 
-	return fmt.Sprint(idPart[1])
+	return "", fmt.Errorf("id not found")
 }
