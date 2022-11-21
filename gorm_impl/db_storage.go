@@ -1,6 +1,7 @@
 package db_storage
 
 import (
+	runtime "github.com/anhdt-vnpay/f5_fulltext_search/runtime"
 	"gorm.io/gorm"
 )
 
@@ -8,7 +9,7 @@ type gormDbStorage struct {
 	db *gorm.DB
 }
 
-func NewGormDbStorage(db *gorm.DB) *gormDbStorage {
+func NewGormDbStorage(db *gorm.DB) runtime.DbStorage {
 	return &gormDbStorage{
 		db: db,
 	}

@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	redis_connector "github.com/anhdt-vnpay/f5_fulltext_search/redis"
+	runtime "github.com/anhdt-vnpay/f5_fulltext_search/runtime"
 )
 
 type messageProcessor struct {
@@ -15,7 +16,7 @@ type messageProcessor struct {
 	chMsg chan []byte
 }
 
-func NewMessageProcessor(redisChannel string, redisConnector redis_connector.RedisConnector) *messageProcessor {
+func NewMessageProcessor(redisChannel string, redisConnector redis_connector.RedisConnector) runtime.MessageProcessor {
 	messageProcessor := &messageProcessor{
 		chMsg:          make(chan []byte),
 		redisChannel:   redisChannel,

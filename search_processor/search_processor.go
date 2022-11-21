@@ -5,6 +5,7 @@ import (
 	"time"
 
 	redis_connector "github.com/anhdt-vnpay/f5_fulltext_search/redis"
+	runtime "github.com/anhdt-vnpay/f5_fulltext_search/runtime"
 	handler "github.com/anhdt-vnpay/f5_fulltext_search/search_processor/handler"
 	helper "github.com/anhdt-vnpay/f5_fulltext_search/search_processor/helper"
 	"github.com/olivere/elastic/v7"
@@ -17,7 +18,7 @@ type searchProcessor struct {
 	es             *elastic.Client
 }
 
-func NewSearchProcessor(ch chan []byte, redisChannel string, redisConnector redis_connector.RedisConnector) *searchProcessor {
+func NewSearchProcessor(ch chan []byte, redisChannel string, redisConnector redis_connector.RedisConnector) runtime.SearchProcessor {
 	es, err := helper.GetESClient()
 	if err != nil {
 		fmt.Printf("error initialize Elastic client: %s\n", err.Error())
