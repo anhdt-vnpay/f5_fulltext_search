@@ -1,8 +1,13 @@
 
 gen_type:
 	./schema/scripts/gen_api.sh
+
+api: 
+	CONFIG=$(CURDIR)/config/config.yaml go run main.go api
 	
 test: 
 	go run main.go
 
 .PHONY: all test clean
+
+

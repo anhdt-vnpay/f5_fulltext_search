@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	model "github.com/anhdt-vnpay/f5_fulltext_search/model"
@@ -30,6 +31,7 @@ func createMessage(tipe string, tableName string, data interface{}) ([]byte, err
 
 func parseSearchResult(data []byte) ([]map[string]interface{}, error) {
 	var rs []map[string]interface{}
+	fmt.Println("DEBUG data: ", data)
 	err := json.Unmarshal(data, &rs)
 	if err != nil {
 		return nil, err

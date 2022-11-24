@@ -3,6 +3,7 @@ package db_connector
 import (
 	"fmt"
 
+	"github.com/anhdt-vnpay/f5_fulltext_search/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -53,6 +54,10 @@ func newClient(config *ConnectorConfig) (db *gorm.DB, err error) {
 		if err != nil {
 			fmt.Println(dsn, " - ", err)
 		}
+		db.AutoMigrate(
+			&model.User{},
+		)
+
 	case Postgres:
 		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s", config.Host, config.Username, config.Password, config.Database, config.Port)
 		db, err = gorm.Open(postgres.New(postgres.Config{
@@ -61,6 +66,10 @@ func newClient(config *ConnectorConfig) (db *gorm.DB, err error) {
 		if err != nil {
 			fmt.Println(err)
 		}
+
+		db.AutoMigrate(
+			&model.User{},
+		)
 	}
 	return
 }

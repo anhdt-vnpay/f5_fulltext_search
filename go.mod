@@ -4,8 +4,16 @@ go 1.18
 
 require (
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
+	github.com/kylelemons/godebug v1.1.0
 	github.com/olivere/elastic/v7 v7.0.32
+	github.com/pkg/errors v0.9.1
+	github.com/sirupsen/logrus v1.4.2
+	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
+	github.com/sykesm/zap-logfmt v0.0.4
+	go.uber.org/zap v1.21.0
+	google.golang.org/grpc v1.50.1
 	gorm.io/driver/mysql v1.4.4
 	gorm.io/driver/postgres v1.4.5
 	gorm.io/gorm v1.24.1
@@ -17,6 +25,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -28,17 +37,19 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
+	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
+	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
 	golang.org/x/text v0.4.0 // indirect

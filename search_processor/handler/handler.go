@@ -56,6 +56,7 @@ func Search(es *elastic.Client, query string) ([]byte, error) {
 	ctx := context.Background()
 	fields := []string{} // left empty to search in all fields
 	q := elastic.NewMultiMatchQuery(query, fields...)
+
 	ind, err := es.Search().
 		Query(q).
 		Do(ctx)
