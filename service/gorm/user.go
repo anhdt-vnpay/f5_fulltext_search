@@ -227,7 +227,6 @@ func (re *UserManager) SearchLite(w http.ResponseWriter, r *http.Request) {
 
 	userLogger.Infof("[SearchLite] query: %s", query)
 
-	user := model.User{}
 	searchRs, err := re.dbfs.SearchLite(query)
 	if err != nil {
 		userLogger.Errorf("[SearchLite] error: %s", err.Error())
@@ -235,10 +234,24 @@ func (re *UserManager) SearchLite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userLogger.Infof("DEBUG search RS: %v >>>>> %T", searchRs, searchRs)
+	userLogger.Infof("DEBUG search RS: %v >>>>> %T", searchRs, searchRs) // []map[string]interface{}
 
 	var users []model.User
-	users = append(users, user)
+
+	srs := searchRs.([]map[string]interface{})
+
+	for _, s := range srs {
+		b, _ := json.Marshal(s)
+		var user model.User
+		err := json.Unmarshal(b, &user)
+		if err != nil {
+			userLogger.Errorf("[SearchLite] error: %s", err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		users = append(users, user)
+	}
+
 	rs := Response{
 		Code:    200,
 		Message: "Successfully",
